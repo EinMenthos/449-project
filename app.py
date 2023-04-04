@@ -2,7 +2,11 @@ from flask import Flask, render_template, request, redirect, url_for, session, a
 import pymysql
 from flask_cors import CORS
 import re
-
+#needed for JWT
+import jwt
+#needed for uploading files
+import os
+from werkzeug.utils import secure_filename
 
 app = Flask(__name__)
 # CORS(app)
@@ -11,7 +15,6 @@ cors = CORS(app, resources={r"/*": {"origins": "*"}})
 app.config["DEBUG"] = True
 
 app.secret_key = 'happykey'
-
 
 # app.config['MYSQL_HOST'] = '127.0.0.1'
 # app.config['MYSQL_USER'] = 'root'
@@ -160,6 +163,7 @@ def admin():
 	else:
 		return render_template('login.html', msg = "need to log in first!") 
 
+#task2: error handling
 @app.errorhandler(400)
 def bad_request(e):
 	return '<h1>400 - Bad Request</h1>'
@@ -191,6 +195,38 @@ def bad_gateway(e):
 @app.errorhandler(505)
 def http_not_supported(e):
 	return '<h1>505 - Server does not support the HTTP version used in the request</h1>'
+
+#task4 - uploading files
+#original source https://www.youtube.com/watch?v=6WruncSoCdI
+app.config['MAX_CONTENT_LENGTH'] = 1024 * 1024
+app.config['UPLOAD_EXTENSIONS'] = ['.jpg', '.png', '.gif']
+#app.config['UPLOAD_PATH'] = 'uploads'
+app.config['IMAGE_UPLOADS'] = '/Users/danielwu/Projects/449/midterm/449-project/upload'
+
+@app.route('/upload-image', methods =['GET', 'POST'])
+def upload_image():
+	if request.method == "POST":
+		if request.files:
+			image = request.files["image"]
+			print(image)	#terminal shows <FileStorage: 'image.jpg' ('image/svg+xml')>
+			image.save(os.path.join(app.config['IMAGE_UPLOADS'], image.filename))
+			print("image saved")	#just a msg on terminal to keep track
+			return redirect(request.url)
+	return render_template('upload_image.html')
+
+
+
+def upload_files():
+    uploaded_file = request.files['file']
+    filename = secure_filename(uploaded_file.filename)
+    if filename != '':
+        file_ext = os.path.splitext(filename)[1]
+        if file_ext not in app.config['UPLOAD_EXTENSIONS']:
+            abort(400)
+        uploaded_file.save(os.path.join(app.config['UPLOAD_PATH'], filename))
+    return redirect(url_for('index'))
+
+
 
 if __name__ == "__main__":
 	app.run(host ="localhost", port = int("5000"))

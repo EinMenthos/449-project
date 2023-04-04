@@ -1,0 +1,29 @@
+<!--Store this code in 'login.html' file inside the 'templates' folder-->
+<!-- https://www.youtube.com/watch?v=6WruncSoCdI -->
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<title> Upload a file </title>
+	</head>
+	<body>
+		<div class="container">
+			<div class="row">
+				<div class = "col">
+					<h1>Upload a image</h1>
+					<hr>
+					<form action="/upload-image" method="POST" enctype="multipart/form-data">
+						<div class="form-group">
+							<label>Select image</label>
+							<div class="custom-file">
+								<input type="file" class="custom-file-input" name="image" id="image">
+								<label class="custom-file-label" for="image">Select image...</label>
+							</div>
+						</div>
+						<button type="submit" class="btn btn-primary">Upload image</button>
+					</form>
+
+				</div>
+			</div>
+		</div>
+	</body>
+</html>
