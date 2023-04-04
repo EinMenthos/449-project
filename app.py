@@ -198,7 +198,8 @@ def http_not_supported(e):
 
 #task4 - uploading files
 #original source https://www.youtube.com/watch?v=6WruncSoCdI
-app.config['MAX_CONTENT_LENGTH'] = 1024 * 1024
+#app.config['MAX_CONTENT_LENGTH'] = 1024 * 1024			#this name is a global which overwrite my error handling.
+app.config['MAX_IMAGE_FILESIZE'] = 1024 * 1024
 #app.config['UPLOAD_EXTENSIONS'] = ['.jpg', '.png', '.gif']
 #app.config['UPLOAD_PATH'] = 'uploads'
 app.config['IMAGE_UPLOADS'] = '/Users/danielwu/Projects/449/midterm/449-project/upload'
@@ -208,6 +209,10 @@ app.config['ALLOWED_IMAGE_EXTENSIONS'] = ['.jpg', '.png', '.gif', '.jpeg']
 def upload_image():
 	if request.method == "POST":
 		if request.files:
+			print (request.cookies.get("filesize"))
+			if not allowed_image_filesize(request.cookies.get("filesize")):
+				print("File exceeded maximum size")
+				abort(400)
 			image = request.files["image"]
 			#print(image)    #terminal shows <FileStorage: 'image.jpg' ('image/svg+xml')>
 			filename = secure_filename(image.filename)
@@ -224,6 +229,14 @@ def upload_image():
 				return redirect(request.url)
 	return render_template('upload_image.html')
 #23:09
+def allowed_image_filesize(filesize):
+	if int(filesize) <= app.config['MAX_IMAGE_FILESIZE']:
+		print("true")
+		return True
+	else:
+		print("false")
+		return False
+		
 
 
 if __name__ == "__main__":
