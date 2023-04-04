@@ -199,33 +199,31 @@ def http_not_supported(e):
 #task4 - uploading files
 #original source https://www.youtube.com/watch?v=6WruncSoCdI
 app.config['MAX_CONTENT_LENGTH'] = 1024 * 1024
-app.config['UPLOAD_EXTENSIONS'] = ['.jpg', '.png', '.gif']
+#app.config['UPLOAD_EXTENSIONS'] = ['.jpg', '.png', '.gif']
 #app.config['UPLOAD_PATH'] = 'uploads'
 app.config['IMAGE_UPLOADS'] = '/Users/danielwu/Projects/449/midterm/449-project/upload'
+app.config['ALLOWED_IMAGE_EXTENSIONS'] = ['.jpg', '.png', '.gif', '.jpeg']
 
 @app.route('/upload-image', methods =['GET', 'POST'])
 def upload_image():
 	if request.method == "POST":
 		if request.files:
 			image = request.files["image"]
-			print(image)	#terminal shows <FileStorage: 'image.jpg' ('image/svg+xml')>
-			image.save(os.path.join(app.config['IMAGE_UPLOADS'], image.filename))
-			print("image saved")	#just a msg on terminal to keep track
-			return redirect(request.url)
+			#print(image)    #terminal shows <FileStorage: 'image.jpg' ('image/svg+xml')>
+			filename = secure_filename(image.filename)
+			#print(image.filename)		#terminal shows the filename
+			if filename != "":
+				file_ext = os.path.splitext(filename)[1]
+				if file_ext not in app.config['ALLOWED_IMAGE_EXTENSIONS']:
+					abort(400)
+				image.save(os.path.join(app.config['IMAGE_UPLOADS'], filename))
+				print("image saved")    #just a msg on terminal to keep track
+				return redirect(request.url)
+			else:
+				print("image must have a filename")
+				return redirect(request.url)
 	return render_template('upload_image.html')
-
-
-
-def upload_files():
-    uploaded_file = request.files['file']
-    filename = secure_filename(uploaded_file.filename)
-    if filename != '':
-        file_ext = os.path.splitext(filename)[1]
-        if file_ext not in app.config['UPLOAD_EXTENSIONS']:
-            abort(400)
-        uploaded_file.save(os.path.join(app.config['UPLOAD_PATH'], filename))
-    return redirect(url_for('index'))
-
+#23:09
 
 
 if __name__ == "__main__":
