@@ -1,0 +1,45 @@
+<html lang="en">
+    <head>
+        <title>Public info</title>
+        <link rel="stylesheet" href="../static/style.css">
+    </head>
+    <body bgcolor="#e6ffee">
+        <div class="one">
+            <div class="two">
+                <h1>Side Bar</h1>
+                <ul>
+                    <li><a href="{{url_for('login')}}">Sign in</a></li>
+                </ul>
+            </div>
+            <div class="content" align="center">
+                <div class="topbar">
+                    <h2>Welcome!! You are in public info Page!! </h2>                       
+                </div>  </br>
+                <div class="contentbar">
+                    <h1>Country of Users</h1>    </br>
+                     {% block content %}
+                        <div class="border">
+                            <table class="worddark"></br></br></br></br>
+                                <thead>
+                                    <tr>
+                                        <td>Username</td>
+                                        <td>Country</td>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for account in accounts %}
+                                    <tr>
+                                        <td>{{account['username']}}</td>
+                                        <td>{{ account['country'] }}</td>
+                                    </tr>
+                                    {% endfor %}                       
+                                </tbody>
+                            </table>
+                        </div>
+                    {% endblock %}                                          
+                </div>
+                 
+            </div>
+        </div>
+    </body>
+</html>
