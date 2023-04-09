@@ -79,7 +79,7 @@ def login():
 	if request.method == 'POST' and 'username' in request.form and 'password' in request.form:
 		username = request.form['username']
 		password = request.form['password']
-		cur.execute('SELECT * FROM accounts WHERE username = % s AND password = % s', (username, password), )
+		cur.execute('SELECT * FROM accounts WHERE username = % s AND password = % s', (username, password, ))
 		conn.commit()
 		account = cur.fetchone()
 		if account:
