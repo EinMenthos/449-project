@@ -1,12 +1,29 @@
 from flask import Flask, render_template, request, redirect, url_for, session, abort
 import pymysql
+from flask_sqlalchemy import SQLAlchemy
+import uuid #For public id
 from flask_cors import CORS
 import re
 #needed for JWT
 import jwt
+from functools import wraps
 #needed for uploading files?
 import os
 from werkzeug.utils import secure_filename
+from hashlib import pbkdf2_hmac
+
+def generate_salt():
+	salt = os.urandom(16)
+	return salt.hex()
+
+def generate_hash(plain_password, password_salt):
+	password_hash = pbkdf2_hmac(
+		"sha256",
+		b"%b" % bytes(plain_password, "utf-8"),
+		b"%b" % bytes(password_salt, "utf-8"),
+		10000,
+	)
+	return password_hash.hex()
 
 app = Flask(__name__)
 # CORS(app)
@@ -25,10 +42,17 @@ app.secret_key = 'happykey'
 #password = "1234567890"	#professor DB pw
 #password = My20SQL21		#Daniel pw
 
+def generate_jwt_token(content):
+	encoded_content = jwt.encode(content, app.secret_key, algorithm="HS256")
+	token = str(encoded_content).split(" ")[0]
+	return token
+
+
+
 conn = pymysql.connect(
         host='localhost',
         user='root', 
-        password = "My20SQL21",
+        password = "Oddworld13759",
         db='449_db',
 		cursorclass=pymysql.cursors.DictCursor
         )
@@ -41,7 +65,7 @@ def login():
 	if request.method == 'POST' and 'username' in request.form and 'password' in request.form:
 		username = request.form['username']
 		password = request.form['password']
-		cur.execute('SELECT * FROM accounts WHERE username = % s AND password = % s', (username, password, ))
+		cur.execute('SELECT * FROM accounts WHERE username = % s AND password = % s', (username, password))
 		conn.commit()
 		account = cur.fetchone()
 		if account:
@@ -49,8 +73,23 @@ def login():
 			session['loggedin'] = True
 			session['id'] = account['id']
 			session['username'] = account['username']
-			msg = 'Logged in successfully !'
+			session['password_hash'] = account['password_hash']
+			session['password_salt'] = account['password_salt']
+			session['admin'] = account['admin']
+			session['jwt_token'] = None
+			password_hash = generate_hash(password, session['password_salt'])				
+
+			#if account is an admin and the hashes match a token will be generated and saved to the session until a new person logs in
+			if password_hash == account['password_hash'] and account['admin'] == 1:
+				user_id = session['id']
+				user_admin = session['admin']
+				user_name = session['username']
+				jwt_token = generate_jwt_token({"id": user_id,"user_name": user_name, "admin": user_admin})
+				session['jwt_token'] = jwt_token
+			
+			msg = 'Logged in successfully !'	
 			return render_template('index.html', msg = msg)
+
 		else:
 			msg = 'Incorrect username / password !'
 	return render_template('login.html', msg = msg)
@@ -69,6 +108,8 @@ def register():
 		print('reached')
 		username = request.form['username']
 		password = request.form['password']
+		password_salt = generate_salt()
+		password_hash = generate_hash(password, password_salt)
 		email = request.form['email']
 		organisation = request.form['organisation']
 		address = request.form['address']
@@ -87,7 +128,7 @@ def register():
 		elif not re.match(r'[A-Za-z0-9]+', username):
 			msg = 'name must contain only characters and numbers !'
 		else:
-			cur.execute('INSERT INTO accounts VALUES (NULL, % s, % s, % s, % s, % s, % s, % s, % s, % s)', (username, password, email, organisation, address, city, state, country, postalcode, ))
+			cur.execute('INSERT INTO accounts VALUES (NULL, % s, % s, % s, % s, % s, % s, % s, % s, % s, % s, % s, 0)', (username, password, email, organisation, address, city, state, country, postalcode, password_salt, password_hash ))
 			conn.commit()
 
 			msg = 'You have successfully registered !'
@@ -110,6 +151,27 @@ def display():
 		account = cur.fetchone()
 		return render_template("display.html", account = account)
 	return redirect(url_for('login'))
+
+#only accessable by 'admins' who are marked as such in the database
+#anyone who tries to access this who isnt an admin with a token will be booted into the login page
+@app.route("/protected")
+def protected():
+	if 'loggedin' in session:
+		jwt_token = session.get('jwt_token')
+		if jwt_token == None:
+			return redirect(url_for('login'))
+		try:
+			payload = jwt.decode(jwt_token, app.config['SECRET_KEY'], algorithms=['HS256'])
+			return render_template('test.html')
+		except (jwt.InvalidTokenError, KeyError):
+			no_permission(401)
+			return redirect(url_for('login'))
+
+		
+		
+		
+		
+
 
 @app.route("/update", methods =['GET', 'POST'])
 def update():
