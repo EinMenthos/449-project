@@ -66,7 +66,7 @@ def generate_jwt_token(content):
 conn = pymysql.connect(
         host='localhost',
         user='root', 
-        password = "Oddworld13759",
+        password = "My20SQL21",
         db='449_db',
 		cursorclass=pymysql.cursors.DictCursor
         )
@@ -79,7 +79,7 @@ def login():
 	if request.method == 'POST' and 'username' in request.form and 'password' in request.form:
 		username = request.form['username']
 		password = request.form['password']
-		cur.execute('SELECT * FROM accounts WHERE username = % s AND password = % s', (username, password))
+		cur.execute('SELECT * FROM accounts WHERE username = % s AND password = % s', (username, password), )
 		conn.commit()
 		account = cur.fetchone()
 		if account:
