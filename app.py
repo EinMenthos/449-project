@@ -168,7 +168,7 @@ def display():
 		return render_template("display.html", account = account)
 	return redirect(url_for('login'))
 
-#task 3
+#task 3 by Douglas
 #only accessable by 'admins' who are marked as such in the database
 #anyone who tries to access this who isnt an admin with a token will be booted into the login page
 @app.route("/protected")
@@ -180,11 +180,11 @@ def protected():
 		try:
 			payload = jwt.decode(jwt_token, app.config['SECRET_KEY'], algorithms=['HS256'])
 		except (jwt.InvalidTokenError, KeyError):
-			return render_template('error.html', error_message = no_permission(403))
+			return render_template('error.html', error_message = no_permission(403)),
 		if payload['admin'] == 1:
 			return render_template('test.html')
 		else:
-			return render_template('error.html', error_message = no_permission(403))
+			return render_template('error.html', error_message = ("Invalid Token", no_permission(403)))
 		
 		
 		
