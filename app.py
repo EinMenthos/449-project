@@ -365,6 +365,7 @@ def protected():
 	return jsonify({'message':'This is only available for people with valid tokens.', 'secret_ingredient' : 'MSG'})
 """
 
+"""
 @app.route('/loginpwt')
 def loginpwt():
 	auth = request.authorization
@@ -380,7 +381,7 @@ def loginpwt():
 		#return jsonify ({'token' : token.decode('UTF-8')})
 
 	return make_response('Cannot verify!', 401, {'WWW-authenticate' : 'Basic realm="Login Required"'})
-
+"""
 
 if __name__ == "__main__":
 	app.run(host ="localhost", port = int("5000"))
