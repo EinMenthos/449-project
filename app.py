@@ -4,6 +4,7 @@ from flask_sqlalchemy import SQLAlchemy
 import uuid #For public id
 from flask_cors import CORS
 import re
+"""
 <<<<<<< HEAD
 #needed for JWT
 import jwt
@@ -13,6 +14,7 @@ from functools import wraps
 
 #needed for uploading files
 >>>>>>> c024af125d0bf323250065367bfc34b391958ffb
+"""
 import os
 from werkzeug.utils import secure_filename
 from hashlib import pbkdf2_hmac
@@ -66,7 +68,7 @@ def generate_jwt_token(content):
 conn = pymysql.connect(
         host='localhost',
         user='root', 
-        password = "My20SQL21",
+        password = "Oddworld13759",
         db='449_db',
 		cursorclass=pymysql.cursors.DictCursor
         )
@@ -94,12 +96,13 @@ def login():
 			password_hash = generate_hash(password, session['password_salt'])				
 
 			#if account is an admin and the hashes match a token will be generated and saved to the session until a new person logs in
-			if password_hash == account['password_hash'] and account['admin'] == 1:
+			if password_hash == account['password_hash']:
 				user_id = session['id']
 				user_admin = session['admin']
 				user_name = session['username']
 				jwt_token = generate_jwt_token({"id": user_id,"user_name": user_name, "admin": user_admin})
 				session['jwt_token'] = jwt_token
+				print(jwt_token)
 			
 			msg = 'Logged in successfully !'	
 			return render_template('index.html', msg = msg)
@@ -176,11 +179,12 @@ def protected():
 			return redirect(url_for('login'))
 		try:
 			payload = jwt.decode(jwt_token, app.config['SECRET_KEY'], algorithms=['HS256'])
-			return render_template('test.html')
 		except (jwt.InvalidTokenError, KeyError):
-			no_permission(401)
-			return redirect(url_for('login'))
-
+			return render_template('error.html', error_message = no_permission(403))
+		if payload['admin'] == 1:
+			return render_template('test.html')
+		else:
+			return render_template('error.html', error_message = no_permission(403))
 		
 		
 		
@@ -352,10 +356,12 @@ def token_required(f):
 def unprotected():
 	return jsonify({'message' : 'Anyone can view this!', 'not_secret_ingredient' : 'ketchup'})
 
+"""
 @app.route('/protected')
 @token_required
 def protected():
 	return jsonify({'message':'This is only available for people with valid tokens.', 'secret_ingredient' : 'MSG'})
+"""
 
 @app.route('/loginpwt')
 def loginpwt():
